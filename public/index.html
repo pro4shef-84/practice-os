@@ -360,11 +360,12 @@
 
     .price-card {
       background: var(--bg); border: 1px solid var(--bordm);
-      border-radius: 20px; padding: 36px; position: relative; overflow: hidden;
+      border-radius: 20px; padding: 36px; position: relative; overflow: visible;
     }
     .price-card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, var(--accent), var(--teal));
+      border-radius: 20px 20px 0 0;
     }
     .p-amount { font-size: 60px; font-weight: 800; letter-spacing: -.04em; color: var(--text); line-height: 1; }
     .p-period { font-size: 18px; color: var(--muted); }
@@ -434,6 +435,24 @@
     .mmenu a { font-size: 24px; font-weight: 700; color: var(--text); text-decoration: none; }
     .mmenu-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text); cursor: pointer; font-size: 22px; }
 
+    /* ── survey step ─────────────────────────────────────────── */
+    .sq { margin-bottom: 14px; }
+    .sq-q { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
+    .sq-opts { display: flex; flex-direction: column; gap: 5px; }
+    .sq-opt {
+      display: flex; align-items: center; gap: 9px; font-size: 13px;
+      color: var(--muted); cursor: pointer; padding: 8px 12px; border-radius: 8px;
+      border: 1.5px solid var(--border); background: var(--bg);
+      transition: border-color .15s, background .15s, color .15s;
+      user-select: none;
+    }
+    .sq-opt:hover { border-color: var(--accent); }
+    .sq-opt input[type="radio"] { accent-color: var(--accent); flex-shrink: 0; margin: 0; }
+    .sq-opt:has(input:checked) { border-color: var(--accent); background: var(--as); color: var(--accent); font-weight: 600; }
+    .sq-hdr { font-size: 12px; font-weight: 700; color: var(--muted2); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 14px; }
+    .sq-back { background: none; border: none; font-family: var(--font); font-size: 12px; color: var(--muted2); cursor: pointer; margin-bottom: 12px; padding: 0; display: flex; align-items: center; gap: 4px; }
+    .sq-back:hover { color: var(--muted); }
+
     /* ── responsive ───────────────────────────────────────────── */
     @media (max-width: 900px) {
       .nav-links, .nav-cta { display: none; }
@@ -490,16 +509,70 @@
           You do deeply emotional work all day. The last thing you should carry home is admin. Practice OS handles intake, scheduling, cancellation fees, notes, and billing — so every session, you're fully in the room.
         </p>
         <div class="capture">
-          <form class="cap-row" id="hf" onsubmit="sub(event,'h')">
-            <input class="cap-in" type="email" placeholder="your@email.com" required autocomplete="email" />
-            <button type="submit" class="btn btn-primary cap-btn">Join waitlist</button>
+          <form id="hf" onsubmit="sub(event,'h')">
+            <div id="h-s1" class="cap-row">
+              <input class="cap-in" id="h-email" type="email" placeholder="your@email.com" required autocomplete="email" />
+              <button type="button" class="btn btn-primary cap-btn" onclick="capNext('h')">Join waitlist</button>
+            </div>
+            <div id="h-s2" style="display:none">
+              <button type="button" class="sq-back" onclick="capBack('h')">← Back</button>
+              <div class="sq-hdr">A few quick questions — helps us build what matters most</div>
+              <div class="sq">
+                <p class="sq-q">What are you currently using to manage your practice?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="h-tool" value="simple_practice"> SimplePractice</label>
+                  <label class="sq-opt"><input type="radio" name="h-tool" value="therapy_notes"> TherapyNotes</label>
+                  <label class="sq-opt"><input type="radio" name="h-tool" value="jane_app"> Jane App</label>
+                  <label class="sq-opt"><input type="radio" name="h-tool" value="multiple_tools"> Multiple tools cobbled together</label>
+                  <label class="sq-opt"><input type="radio" name="h-tool" value="nothing"> Nothing structured</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">Which admin task takes the most out of you?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="h-pain" value="notes"> Writing session notes</label>
+                  <label class="sq-opt"><input type="radio" name="h-pain" value="cancellations"> Chasing cancellations &amp; no-shows</label>
+                  <label class="sq-opt"><input type="radio" name="h-pain" value="intake"> New client intake &amp; paperwork</label>
+                  <label class="sq-opt"><input type="radio" name="h-pain" value="superbills"> Superbills &amp; billing</label>
+                  <label class="sq-opt"><input type="radio" name="h-pain" value="scheduling"> Scheduling</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">How many client sessions do you see per week?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="h-sessions" value="under_10"> Under 10</label>
+                  <label class="sq-opt"><input type="radio" name="h-sessions" value="10_to_15"> 10–15</label>
+                  <label class="sq-opt"><input type="radio" name="h-sessions" value="16_to_20"> 16–20</label>
+                  <label class="sq-opt"><input type="radio" name="h-sessions" value="over_20"> Over 20</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">What would make you switch practice tools today?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="h-switch" value="lower_price"> Lower flat price</label>
+                  <label class="sq-opt"><input type="radio" name="h-switch" value="auto_save_notes"> Notes that auto-save</label>
+                  <label class="sq-opt"><input type="radio" name="h-switch" value="cancellation_fees"> Cancellation fees that enforce themselves</label>
+                  <label class="sq-opt"><input type="radio" name="h-switch" value="simpler_intake"> Simpler client intake</label>
+                  <label class="sq-opt"><input type="radio" name="h-switch" value="actively_looking"> I'm already actively looking</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">How soon are you thinking about making a change?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="h-urgency" value="shopping_now"> Actively shopping now</label>
+                  <label class="sq-opt"><input type="radio" name="h-urgency" value="open_not_urgent"> Open but not urgent</label>
+                  <label class="sq-opt"><input type="radio" name="h-urgency" value="happy"> Happy with my current setup</label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%;font-size:15px;padding:14px;margin-top:4px;border-radius:11px">Join the waitlist</button>
+            </div>
           </form>
           <div class="cap-ok" id="hok">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="7.5" fill="#059669" opacity=".12"/><path d="M4.5 7.5l2 2 4-4" stroke="#059669" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
             You're on the list — we'll email you when we open.
           </div>
           <div class="cap-err" id="herr">Something went wrong. Try again.</div>
-          <span class="cap-note">No credit card. No commitment. Just your spot in line.</span>
+          <span class="cap-note" id="h-note">No credit card. No commitment. Just your spot in line.</span>
         </div>
       </div>
 
@@ -765,9 +838,63 @@
           <div class="p-note">
             <strong>Zero transaction fees.</strong> If you see 20 clients/week at $200/session, you keep the full $200 — not $193.50 after platform cuts.
           </div>
-          <form onsubmit="sub(event,'p')">
-            <input class="cap-in p-form-in" type="email" placeholder="your@email.com" required autocomplete="email" />
-            <button type="submit" class="btn btn-primary p-submit">Join the waitlist</button>
+          <form id="pf" onsubmit="sub(event,'p')" style="margin-top:16px">
+            <div id="p-s1">
+              <input class="cap-in" id="p-email" type="email" placeholder="your@email.com" required autocomplete="email" style="width:100%" />
+              <button type="button" class="btn btn-primary" style="width:100%;margin-top:9px;font-size:16px;padding:15px;border-radius:12px" onclick="capNext('p')">Join the waitlist</button>
+            </div>
+            <div id="p-s2" style="display:none">
+              <button type="button" class="sq-back" onclick="capBack('p')">← Back</button>
+              <div class="sq-hdr">A few quick questions — helps us build what matters most</div>
+              <div class="sq">
+                <p class="sq-q">What are you currently using to manage your practice?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="p-tool" value="simple_practice"> SimplePractice</label>
+                  <label class="sq-opt"><input type="radio" name="p-tool" value="therapy_notes"> TherapyNotes</label>
+                  <label class="sq-opt"><input type="radio" name="p-tool" value="jane_app"> Jane App</label>
+                  <label class="sq-opt"><input type="radio" name="p-tool" value="multiple_tools"> Multiple tools cobbled together</label>
+                  <label class="sq-opt"><input type="radio" name="p-tool" value="nothing"> Nothing structured</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">Which admin task takes the most out of you?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="p-pain" value="notes"> Writing session notes</label>
+                  <label class="sq-opt"><input type="radio" name="p-pain" value="cancellations"> Chasing cancellations &amp; no-shows</label>
+                  <label class="sq-opt"><input type="radio" name="p-pain" value="intake"> New client intake &amp; paperwork</label>
+                  <label class="sq-opt"><input type="radio" name="p-pain" value="superbills"> Superbills &amp; billing</label>
+                  <label class="sq-opt"><input type="radio" name="p-pain" value="scheduling"> Scheduling</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">How many client sessions do you see per week?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="p-sessions" value="under_10"> Under 10</label>
+                  <label class="sq-opt"><input type="radio" name="p-sessions" value="10_to_15"> 10–15</label>
+                  <label class="sq-opt"><input type="radio" name="p-sessions" value="16_to_20"> 16–20</label>
+                  <label class="sq-opt"><input type="radio" name="p-sessions" value="over_20"> Over 20</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">What would make you switch practice tools today?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="p-switch" value="lower_price"> Lower flat price</label>
+                  <label class="sq-opt"><input type="radio" name="p-switch" value="auto_save_notes"> Notes that auto-save</label>
+                  <label class="sq-opt"><input type="radio" name="p-switch" value="cancellation_fees"> Cancellation fees that enforce themselves</label>
+                  <label class="sq-opt"><input type="radio" name="p-switch" value="simpler_intake"> Simpler client intake</label>
+                  <label class="sq-opt"><input type="radio" name="p-switch" value="actively_looking"> I'm already actively looking</label>
+                </div>
+              </div>
+              <div class="sq">
+                <p class="sq-q">How soon are you thinking about making a change?</p>
+                <div class="sq-opts">
+                  <label class="sq-opt"><input type="radio" name="p-urgency" value="shopping_now"> Actively shopping now</label>
+                  <label class="sq-opt"><input type="radio" name="p-urgency" value="open_not_urgent"> Open but not urgent</label>
+                  <label class="sq-opt"><input type="radio" name="p-urgency" value="happy"> Happy with my current setup</label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%;font-size:16px;padding:15px;border-radius:12px;margin-top:4px">Join the waitlist</button>
+            </div>
           </form>
           <div class="cap-ok" id="pok" style="margin-top:10px">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="7.5" fill="#059669" opacity=".12"/><path d="M4.5 7.5l2 2 4-4" stroke="#059669" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -814,16 +941,70 @@
       <h2>Be the therapist<br />your clients need.</h2>
       <p>Let Practice OS handle the rest. Early access is free — join solo therapists who finally closed their laptop on time.</p>
       <div class="final-cap">
-        <form class="cap-row" id="cf" onsubmit="sub(event,'c')" style="justify-content:center">
-          <input class="cap-in" type="email" placeholder="your@email.com" required autocomplete="email" />
-          <button type="submit" class="btn btn-primary cap-btn">Join waitlist</button>
+        <form id="cf" onsubmit="sub(event,'c')">
+          <div id="c-s1" class="cap-row" style="justify-content:center">
+            <input class="cap-in" id="c-email" type="email" placeholder="your@email.com" required autocomplete="email" />
+            <button type="button" class="btn btn-primary cap-btn" onclick="capNext('c')">Join waitlist</button>
+          </div>
+          <div id="c-s2" style="display:none;text-align:left">
+            <button type="button" class="sq-back" onclick="capBack('c')">← Back</button>
+            <div class="sq-hdr">A few quick questions — helps us build what matters most</div>
+            <div class="sq">
+              <p class="sq-q">What are you currently using to manage your practice?</p>
+              <div class="sq-opts">
+                <label class="sq-opt"><input type="radio" name="c-tool" value="simple_practice"> SimplePractice</label>
+                <label class="sq-opt"><input type="radio" name="c-tool" value="therapy_notes"> TherapyNotes</label>
+                <label class="sq-opt"><input type="radio" name="c-tool" value="jane_app"> Jane App</label>
+                <label class="sq-opt"><input type="radio" name="c-tool" value="multiple_tools"> Multiple tools cobbled together</label>
+                <label class="sq-opt"><input type="radio" name="c-tool" value="nothing"> Nothing structured</label>
+              </div>
+            </div>
+            <div class="sq">
+              <p class="sq-q">Which admin task takes the most out of you?</p>
+              <div class="sq-opts">
+                <label class="sq-opt"><input type="radio" name="c-pain" value="notes"> Writing session notes</label>
+                <label class="sq-opt"><input type="radio" name="c-pain" value="cancellations"> Chasing cancellations &amp; no-shows</label>
+                <label class="sq-opt"><input type="radio" name="c-pain" value="intake"> New client intake &amp; paperwork</label>
+                <label class="sq-opt"><input type="radio" name="c-pain" value="superbills"> Superbills &amp; billing</label>
+                <label class="sq-opt"><input type="radio" name="c-pain" value="scheduling"> Scheduling</label>
+              </div>
+            </div>
+            <div class="sq">
+              <p class="sq-q">How many client sessions do you see per week?</p>
+              <div class="sq-opts">
+                <label class="sq-opt"><input type="radio" name="c-sessions" value="under_10"> Under 10</label>
+                <label class="sq-opt"><input type="radio" name="c-sessions" value="10_to_15"> 10–15</label>
+                <label class="sq-opt"><input type="radio" name="c-sessions" value="16_to_20"> 16–20</label>
+                <label class="sq-opt"><input type="radio" name="c-sessions" value="over_20"> Over 20</label>
+              </div>
+            </div>
+            <div class="sq">
+              <p class="sq-q">What would make you switch practice tools today?</p>
+              <div class="sq-opts">
+                <label class="sq-opt"><input type="radio" name="c-switch" value="lower_price"> Lower flat price</label>
+                <label class="sq-opt"><input type="radio" name="c-switch" value="auto_save_notes"> Notes that auto-save</label>
+                <label class="sq-opt"><input type="radio" name="c-switch" value="cancellation_fees"> Cancellation fees that enforce themselves</label>
+                <label class="sq-opt"><input type="radio" name="c-switch" value="simpler_intake"> Simpler client intake</label>
+                <label class="sq-opt"><input type="radio" name="c-switch" value="actively_looking"> I'm already actively looking</label>
+              </div>
+            </div>
+            <div class="sq">
+              <p class="sq-q">How soon are you thinking about making a change?</p>
+              <div class="sq-opts">
+                <label class="sq-opt"><input type="radio" name="c-urgency" value="shopping_now"> Actively shopping now</label>
+                <label class="sq-opt"><input type="radio" name="c-urgency" value="open_not_urgent"> Open but not urgent</label>
+                <label class="sq-opt"><input type="radio" name="c-urgency" value="happy"> Happy with my current setup</label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;font-size:15px;padding:14px;margin-top:4px;border-radius:11px">Join the waitlist</button>
+          </div>
         </form>
         <div class="cap-ok" id="cok" style="margin-top:12px">
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="7.5" fill="#059669" opacity=".12"/><path d="M4.5 7.5l2 2 4-4" stroke="#059669" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           You're on the list — we'll email you when we open.
         </div>
         <div class="cap-err" id="cerr" style="margin-top:8px">Something went wrong. Try again.</div>
-        <div class="cap-note" style="text-align:center;margin-top:12px">$79/month · No transaction fees · Cancel anytime · HIPAA-compliant</div>
+        <div class="cap-note" id="c-note" style="text-align:center;margin-top:12px">$79/month · No transaction fees · Cancel anytime · HIPAA-compliant</div>
       </div>
     </div>
   </div>
@@ -913,28 +1094,57 @@
     }, 350);
   }, 4000);
 
-  // waitlist form
+  // waitlist — 2-step form
+  function capNext(id) {
+    const emailEl = document.getElementById(id + '-email');
+    if (!emailEl.checkValidity()) { emailEl.reportValidity(); return; }
+    document.getElementById(id + '-s1').style.display = 'none';
+    const note = document.getElementById(id + '-note');
+    if (note) note.style.display = 'none';
+    document.getElementById(id + '-s2').style.display = 'block';
+  }
+
+  function capBack(id) {
+    document.getElementById(id + '-s2').style.display = 'none';
+    document.getElementById(id + '-s1').style.display = '';
+    const note = document.getElementById(id + '-note');
+    if (note) note.style.display = '';
+  }
+
   async function sub(e, id) {
     e.preventDefault();
-    const form = e.target;
-    const inp  = form.querySelector('input[type="email"]');
-    const ok   = document.getElementById(id + 'ok');
-    const err  = document.getElementById(id + 'err');
-    const btn  = form.querySelector('button');
+    const email           = document.getElementById(id + '-email').value.trim();
+    const currentTool     = document.querySelector(`input[name="${id}-tool"]:checked`)?.value;
+    const biggestPain     = document.querySelector(`input[name="${id}-pain"]:checked`)?.value;
+    const sessionsPerWeek = document.querySelector(`input[name="${id}-sessions"]:checked`)?.value;
+    const switchTrigger   = document.querySelector(`input[name="${id}-switch"]:checked`)?.value;
+    const urgency         = document.querySelector(`input[name="${id}-urgency"]:checked`)?.value;
+
+    const ok  = document.getElementById(id + 'ok');
+    const err = document.getElementById(id + 'err');
+    const btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = '…'; err.classList.remove('show');
+
+    const payload = { email };
+    if (currentTool)     payload.currentTool = currentTool;
+    if (biggestPain)     payload.biggestPain = biggestPain;
+    if (sessionsPerWeek) payload.sessionsPerWeek = sessionsPerWeek;
+    if (switchTrigger)   payload.switchTrigger = switchTrigger;
+    if (urgency)         payload.urgency = urgency;
+
     try {
       const r = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inp.value.trim() }),
+        body: JSON.stringify(payload),
       });
       if (!r.ok) throw new Error();
-      form.style.display = 'none';
+      document.getElementById(id + '-s2').style.display = 'none';
       ok.classList.add('show');
     } catch {
       err.classList.add('show');
       btn.disabled = false;
-      btn.textContent = 'Join waitlist';
+      btn.textContent = 'Join the waitlist';
     }
   }
 </script>

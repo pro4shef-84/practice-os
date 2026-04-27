@@ -2,55 +2,46 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const waitlistSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(100).trim(),
   email: z.string().email('Invalid email address').toLowerCase().trim(),
-  yearsInPractice: z.enum(['planning', 'less_than_1', '1_to_3', '3_to_5', '5_plus'], {
-    errorMap: () => ({ message: 'Please select how long you have been in solo practice' }),
-  }),
-  currentTool: z.enum(
-    ['simple_practice', 'therapy_notes', 'google_docs', 'paper', 'nothing', 'other'],
-    { errorMap: () => ({ message: 'Please select your current tool' }) }
-  ),
-  biggestPain: z.enum(
-    ['no_shows', 'notes', 'intake', 'superbills', 'multiple_tools', 'other'],
-    { errorMap: () => ({ message: 'Please select your biggest admin pain' }) }
-  ),
-  adminHours: z.enum(['less_2', '2_to_5', '5_to_10', 'over_10', 'unknown'], {
-    errorMap: () => ({ message: 'Please select your weekly admin hours' }) ,
-  }),
-  openFeedback: z.string().max(2000).trim().optional(),
+  currentTool: z.enum(['simple_practice', 'therapy_notes', 'jane_app', 'multiple_tools', 'nothing']).optional(),
+  biggestPain: z.enum(['notes', 'cancellations', 'intake', 'superbills', 'scheduling']).optional(),
+  sessionsPerWeek: z.enum(['under_10', '10_to_15', '16_to_20', 'over_20']).optional(),
+  switchTrigger: z.enum(['lower_price', 'auto_save_notes', 'cancellation_fees', 'simpler_intake', 'actively_looking']).optional(),
+  urgency: z.enum(['shopping_now', 'open_not_urgent', 'happy']).optional(),
 });
 
 const labels = {
-  yearsInPractice: {
-    planning: 'Not yet — planning to go solo',
-    less_than_1: 'Less than 1 year',
-    '1_to_3': '1–3 years',
-    '3_to_5': '3–5 years',
-    '5_plus': '5+ years',
-  } as Record<string, string>,
   currentTool: {
     simple_practice: 'SimplePractice',
     therapy_notes: 'TherapyNotes',
-    google_docs: 'Google Docs / Sheets / Forms',
-    paper: 'Paper charts + manual',
-    nothing: 'Nothing formal yet',
-    other: 'Something else',
+    jane_app: 'Jane App',
+    multiple_tools: 'Multiple tools cobbled together',
+    nothing: 'Nothing structured',
   } as Record<string, string>,
   biggestPain: {
-    no_shows: 'No-shows and chasing late cancel fees',
     notes: 'Writing session notes',
-    intake: 'New client intake and paperwork',
-    superbills: 'Creating superbills',
-    multiple_tools: 'Juggling multiple tools',
-    other: 'Something else',
+    cancellations: 'Chasing cancellations & no-shows',
+    intake: 'New client intake & paperwork',
+    superbills: 'Superbills & billing',
+    scheduling: 'Scheduling',
   } as Record<string, string>,
-  adminHours: {
-    less_2: 'Less than 2 hours/week',
-    '2_to_5': '2–5 hours/week',
-    '5_to_10': '5–10 hours/week',
-    over_10: 'More than 10 hours/week',
-    unknown: 'Never tracked it',
+  sessionsPerWeek: {
+    under_10: 'Under 10',
+    '10_to_15': '10–15',
+    '16_to_20': '16–20',
+    over_20: 'Over 20',
+  } as Record<string, string>,
+  switchTrigger: {
+    lower_price: 'Lower flat price',
+    auto_save_notes: 'Notes that auto-save',
+    cancellation_fees: 'Cancellation fees that enforce themselves',
+    simpler_intake: 'Simpler client intake',
+    actively_looking: "I'm already actively looking",
+  } as Record<string, string>,
+  urgency: {
+    shopping_now: 'Actively shopping now',
+    open_not_urgent: 'Open but not urgent',
+    happy: 'Happy with current setup',
   } as Record<string, string>,
 };
 
@@ -76,8 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: firstError }, { status: 422 });
   }
 
-  const { firstName, email, yearsInPractice, currentTool, biggestPain, adminHours, openFeedback } =
-    parsed.data;
+  const { email, currentTool, biggestPain, sessionsPerWeek, switchTrigger, urgency } = parsed.data;
 
   const timestamp = new Date().toLocaleString('en-US', {
     timeZone: 'America/Denver',
@@ -86,67 +76,65 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const notificationEmail = process.env.WAITLIST_NOTIFICATION_EMAIL ?? 'v.praveen.rao@gmail.com';
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://solopractice.app';
+  const notificationEmail = process.env.WAITLIST_NOTIFICATION_EMAIL ?? 'anil.vijay@gmail.com';
 
   if (!resendApiKey) {
     console.warn('[waitlist] RESEND_API_KEY not set — skipping email send');
-    console.info('[waitlist] New signup (dev):', {
-      firstName,
-      email,
-      yearsInPractice,
-      currentTool,
-      biggestPain,
-      adminHours,
-      openFeedback,
-      timestamp,
-    });
+    console.info('[waitlist] New signup (dev):', { email, currentTool, biggestPain, sessionsPerWeek, switchTrigger, urgency, timestamp });
     return NextResponse.json({ success: true });
   }
 
   const { Resend } = await import('resend');
   const resend = new Resend(resendApiKey);
 
-  const tableRows = [
-    row('Name', firstName, false),
-    row('Email', email, true),
-    row('Solo practice since', labels.yearsInPractice[yearsInPractice] ?? yearsInPractice, false),
-    row('Current tool', labels.currentTool[currentTool] ?? currentTool, true),
-    row('Biggest pain', labels.biggestPain[biggestPain] ?? biggestPain, false),
-    row('Admin hrs/week', labels.adminHours[adminHours] ?? adminHours, true),
-    row('Open feedback', openFeedback ?? '—', false),
-    row('Signed up', timestamp, true),
-  ].join('');
+  const rows: string[] = [];
+  let shaded = false;
+  const addRow = (label: string, value: string) => {
+    rows.push(row(label, value, shaded));
+    shaded = !shaded;
+  };
+  addRow('Email', email);
+  if (currentTool)      addRow('Current tool', labels.currentTool[currentTool] ?? currentTool);
+  if (biggestPain)      addRow('Biggest pain', labels.biggestPain[biggestPain] ?? biggestPain);
+  if (sessionsPerWeek)  addRow('Sessions/week', labels.sessionsPerWeek[sessionsPerWeek] ?? sessionsPerWeek);
+  if (switchTrigger)    addRow('Switch trigger', labels.switchTrigger[switchTrigger] ?? switchTrigger);
+  if (urgency)          addRow('Timeline', labels.urgency[urgency] ?? urgency);
+  addRow('Signed up', timestamp);
+
+  const subjectParts = [
+    currentTool ? labels.currentTool[currentTool] : null,
+    biggestPain ? labels.biggestPain[biggestPain] : null,
+  ].filter(Boolean);
+  const subject = subjectParts.length > 0
+    ? `Waitlist: ${email} — ${subjectParts.join(' → ')}`
+    : `Waitlist: ${email}`;
 
   const [notificationResult, confirmationResult] = await Promise.allSettled([
     resend.emails.send({
-      from: 'SoloPractice Waitlist <waitlist@solopractice.app>',
+      from: 'Practice OS Waitlist <waitlist@solopractice.app>',
       to: [notificationEmail],
-      subject: `Waitlist: ${firstName} — ${labels.currentTool[currentTool] ?? currentTool} → ${labels.biggestPain[biggestPain] ?? biggestPain}`,
+      subject,
       html: `
         <div style="font-family:Inter,sans-serif;max-width:560px;">
-          <h2 style="color:#4338ca;margin-bottom:16px;">New SoloPractice signup</h2>
+          <h2 style="color:#2A7D5F;margin-bottom:16px;">New Practice OS signup</h2>
           <table style="border-collapse:collapse;width:100%;font-size:14px;">
-            ${tableRows}
+            ${rows.join('')}
           </table>
         </div>
       `,
     }),
 
     resend.emails.send({
-      from: 'SoloPractice <waitlist@solopractice.app>',
+      from: 'Practice OS <waitlist@solopractice.app>',
       to: [email],
-      subject: "You're on the SoloPractice waitlist",
+      subject: "You're on the Practice OS waitlist",
       html: `
         <div style="font-family:Inter,sans-serif;max-width:480px;color:#111827;line-height:1.6;">
-          <p>Hi ${firstName},</p>
-          <p>Thanks for joining. We read every response — yours helps us understand what to build first.</p>
-          <p>We&apos;re in early development and will reach out directly before we open beta access.</p>
-          <p>In the meantime, the free note templates (SOAP, DAP, BIRP) are here if you want them:<br/>
-            <a href="${appUrl}/templates" style="color:#4338ca;">${appUrl}/templates</a>
-          </p>
+          <p>Thanks for joining.</p>
+          <p>We read every response — yours helps us understand what to build first.</p>
+          <p>We're in early development and will reach out directly before we open beta access.</p>
           <p style="color:#6b7280;font-size:13px;margin-top:32px;">
-            — The SoloPractice team
+            — The Practice OS team
           </p>
         </div>
       `,
@@ -160,7 +148,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.error('[waitlist] Failed to send confirmation email:', confirmationResult.reason);
   }
 
-  console.info('[waitlist] Signup:', { firstName, email, currentTool, biggestPain, adminHours });
+  console.info('[waitlist] Signup:', { email, currentTool, biggestPain, sessionsPerWeek, switchTrigger, urgency });
 
   return NextResponse.json({ success: true });
 }
