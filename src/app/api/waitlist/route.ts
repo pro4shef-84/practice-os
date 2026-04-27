@@ -76,7 +76,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const notificationEmail = process.env.WAITLIST_NOTIFICATION_EMAIL ?? 'anil.vijay@gmail.com';
+  const notificationEmail = process.env.WAITLIST_NOTIFICATION_EMAIL ?? 'v.praveen.rao@gmail.com';
 
   if (!resendApiKey) {
     console.warn('[waitlist] RESEND_API_KEY not set — skipping email send');

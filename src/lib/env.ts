@@ -21,7 +21,7 @@ const envSchema = z.object({
 
   // Resend — active now (waitlist emails)
   RESEND_API_KEY: z.string().min(1).optional(),
-  WAITLIST_NOTIFICATION_EMAIL: z.string().email().default('anil.vijay@gmail.com'),
+  WAITLIST_NOTIFICATION_EMAIL: z.string().email().default('v.praveen.rao@gmail.com'),
 
   // App
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
