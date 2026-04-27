@@ -78,6 +78,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const resendApiKey = process.env.RESEND_API_KEY;
   const notificationEmail = process.env.WAITLIST_NOTIFICATION_EMAIL ?? 'v.praveen.rao@gmail.com';
 
+  // Save to Supabase regardless of Resend being set
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (supabaseUrl && supabaseKey) {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    await supabase.from('waitlist').upsert(
+      { email, current_tool: currentTool, biggest_pain: biggestPain, sessions_per_week: sessionsPerWeek, switch_trigger: switchTrigger, urgency },
+      { onConflict: 'email' }
+    );
+  }
+
   if (!resendApiKey) {
     console.warn('[waitlist] RESEND_API_KEY not set — skipping email send');
     console.info('[waitlist] New signup (dev):', { email, currentTool, biggestPain, sessionsPerWeek, switchTrigger, urgency, timestamp });
